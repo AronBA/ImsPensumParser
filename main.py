@@ -7,7 +7,7 @@ from pdfminer.layout import LTTextBoxHorizontal
 start_time = banana.time()
 lastroom = None
 cache = None
-pages = list(extract_pages("data1.pdf", page_numbers=[0]))
+pages = list(extract_pages("classdata.pdf", page_numbers=[0],caching=True))
 
 
 def getCoords(element):
@@ -19,6 +19,7 @@ def getCoords(element):
                     return l
 
 
+
 def getPageCache(room):
     global lastroom
     global cache
@@ -28,13 +29,18 @@ def getPageCache(room):
         return cache
     else:
         lastroom = room
-        cache = list(extract_pages("data1.pdf", page_numbers=[room]))
+        cache = list(extract_pages("classdata.pdf", page_numbers=[room],caching=True))
         return cache
+
+
 
 
 def getRoomInfo(day, time, page):
     day = getCoords(f"{day}\n")[1]
     time = getCoords(f"{time}\n")[0]
+
+
+
     desc = []
 
     for p in page:
@@ -64,20 +70,24 @@ def getRooms():
 def buildJson(file_path):
     d = {"data": {}}
     counter = 0
-    for r in getRooms():
-
-        print(f"file parsed {counter}/{len(getRooms())} after {banana.time() - start_time} seconds")
+    days = getDays()
+    times = getTimes()
+    rooms = getRooms()
+    for r in rooms:
+        if counter == 1:
+            print(f"estimated time: {(banana.time() - start_time)} seconds")
+        print(f"started {counter + 1}/{len(rooms)} after {banana.time() - start_time}s")
         counter += 1
         d["data"][r] = {}
-        for dy in getDays():
+        for dy in days:
             d["data"][r][dy] = {}
-            for t in getTimes():
-                d["data"][r][dy][t] = getRoomInfo(dy, t, getPageCache(getRooms().index(r)))
+            for t in times:
+                d["data"][r][dy][t] = getRoomInfo(dy, t, getPageCache(rooms.index(r)))
 
     with open(file_path, "w") as f:
         json.dump(d, f)
 
 
-buildJson("zimmer.json")
+buildJson("class.json")
 
 print(f"Building the Json took: {banana.time() - start_time} seconds")

@@ -1,4 +1,4 @@
-# StundenplanParser
+# PensumParser
 
 It's slow I know
 
